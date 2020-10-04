@@ -1,0 +1,44 @@
+import React from 'react';
+import styled from 'styled-components/native';
+
+import HomeIcon from '../images/casa.svg';
+import FavoriteIcon from '../images/coracao.svg';
+import SearchIcon from '../images/procurar.svg';
+import AccountIcon from '../images/do-utilizador.svg';
+
+const TabArea = styled.View`
+    height: 60px;
+    background-color: #000;
+    flex-direction: row;
+`;
+
+const TabItem = styled.TouchableOpacity`
+    flex:1;
+    justify-content: center;
+    align-items: center;
+`;
+
+export default ({state, navigation}) => {
+
+    const goTo = (screenName) => {
+        navigation.navigate(screenName);
+
+    }
+
+    return(
+        <TabArea>
+            <TabItem onPress={()=>goTo('Home')}>
+                <HomeIcon style={{opacity: state.index===0? 1 : 0.5}} width="24" height="24" fill="#FFFFFF" /> 
+            </TabItem>
+            <TabItem onPress={()=>goTo('Search')}>
+                <SearchIcon style={{opacity: state.index===1? 1 : 0.5}} width="24" height="24" fill="#FFFFFF" />
+            </TabItem>
+            <TabItem onPress={()=>goTo('Favorites')}> 
+                <FavoriteIcon style={{opacity: state.index===2? 1 : 0.5}} width="24" height="24" fill="#FFFFFF" /> 
+            </TabItem>
+            <TabItem onPress={()=>goTo('Profile')}>
+                <AccountIcon style={{opacity: state.index===3? 1 : 0.5}} width="24" height="24" fill="#FFFFFF" />         
+            </TabItem>
+        </TabArea>
+    );
+}
