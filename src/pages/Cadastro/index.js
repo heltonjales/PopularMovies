@@ -1,25 +1,29 @@
 import React, { Component, useEffect, useContext, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-community/async-storage';
-
 import { 
-  View, 
-  KeyboardAvoidingView, 
-  TextInput, 
-  Image, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView
-} from 'react-native';
+  Scroller,
+  KeyboardAvoidingView,
+  Container,
+  ContainerLogo,
+  Image,
+  CadastraUsuario,
+  CadastraUsuarioTexto
+} from './styles';
 
+import InputArea from '../../components/LoginInput';
+import { mask } from 'remask';
 import PopularMovies from '../../Api';
 import firebase from '../../FirebaseConnection';
 import { UserContext } from '../../contexts/UsersContext';
 
+import EmailIcon from '../../images/email.svg';
+import LockIcon from '../../images/lock.svg';
+import UserIcon from '../../images/person.svg';
+import SmartPhoneIcon from '../../images/smartphone.svg';
+
 export default () => { 
   const { dispatch: userDispatch } = useContext(UserContext);
-
   const navigation = useNavigation();
   
   const [nome, setNomeText] = useState('');
@@ -33,8 +37,7 @@ export default () => {
   }, []);
 
 function cadastrar (){
-  if(nome != '' && email != '' && telefone != '' && senha != '' && repetirSenha != '') { 
-    
+  if(nome != '' && email != '' && telefone != '' && senha != '' && repetirSenha != '') {   
     if (senha == repetirSenha) {
       PopularMovies.registerUser(email, senha).catch((error)=>{
         alert(error.code);
@@ -47,22 +50,24 @@ function cadastrar (){
       if(user){
         firebase.database().ref('usuarios').child(user.uid).set({
           nome: nome,
-          telefone: telefone  
+          telefone: telefone,
+          email: email  
         });
-
-        
-
+      
         let token = firebase.auth().currentUser.uid;
         AsyncStorage.setItem('token', token);
 
         firebase.database().ref('usuarios').child(token).once('value')
         .then((snapshot)=>{
           let nome = snapshot.val().nome;
-          console.log('Nome', nome);
+          let telefone = snapshot.val().telefone;
+          let email = snapshot.val().email;
           userDispatch({
             type: 'setName',
             payload:{
-              name: nome
+              name: nome,
+              phone: telefone,
+              mail: email
             }
           });
         });
@@ -75,110 +80,58 @@ function cadastrar (){
 }
 
 return (
-    <ScrollView>  
-    <KeyboardAvoidingView style={styles.background}>
-     
-      <View style={styles.container}>
-      <View style={styles.containerLogo}>
-        <Image
-        style={{
-            width:50,
-            height:50
-        }} 
-        source={require('../assets/logo1.png')}  
-        />
-      </View>  
-        <TextInput 
-          style={styles.input}
-          placeholder="Nome"
-          autoCorrect={false}
-          value={nome}
-          onChangeText={(n)=>setNomeText(n)}        
-        />
+  <Scroller>  
+    <KeyboardAvoidingView>
+      <Container>
+        <ContainerLogo>
+        <Image source={require('../assets/logo1.png')} />
+        </ContainerLogo>  
+          <InputArea 
+            IconSvg={UserIcon}
+            placeholder="Nome"
+            autoCorrect={false}
+            value={nome}
+            onChangeText={e=>setNomeText(e)}  
+          />
 
-        <TextInput 
-          style={styles.input}
-          placeholder="E-mail"
-          autoCorrect={false}
-          value={email}
-          onChangeText={(e)=>setEmailText(e)}        
-        />
+          <InputArea 
+            IconSvg={EmailIcon}
+            placeholder="E-mail"
+            autoCorrect={false}
+            value={email}
+            onChangeText={(e)=>setEmailText(e)}        
+          />
 
-        <TextInput 
-          style={styles.input}
-          placeholder="Telefone"
-          autoCorrect={false}
-          value={telefone}
-          onChangeText={(t)=>setTelefoneText(t)}        
-        />
-       
-        <TextInput 
-          style={styles.input}
-          secureTextEntry={true}
-          placeholder="Senha"
-          autoCorrect={false}
-          value={senha}
-          onChangeText={(s)=>setSenhaText(s)}        
-        />
+          <InputArea 
+            IconSvg={SmartPhoneIcon}
+            placeholder="Telefone"
+            autoCorrect={false}
+            value={mask(telefone,['(99)9.9999-9999'])}
+            onChangeText={(t)=>setTelefoneText(t)}        
+          />
+        
+          <InputArea 
+            IconSvg={LockIcon}
+            password={true}
+            placeholder="Senha"
+            autoCorrect={false}
+            value={senha}
+            onChangeText={(s)=>setSenhaText(s)}     
+          />
 
-        <TextInput       
-          style={styles.input}
-          placeholder="Repetir Senha"
-          secureTextEntry={true}
-          autoCorrect={false}
-          value={repetirSenha}
-          onChangeText={(r)=>setrepetirSenhaText(r)}        
-        />
-     
-
-      <TouchableOpacity style={styles.btnSubmit} onPress={cadastrar}>
-        <Text style={styles.SubmitText}>Cadastrar</Text>  
-      </TouchableOpacity>
-
-      </View>
+          <InputArea 
+            IconSvg={LockIcon}      
+            placeholder="Repetir Senha"
+            password={true}
+            autoCorrect={false}
+            value={repetirSenha}
+            onChangeText={(r)=>setrepetirSenhaText(r)}        
+          />
+        <CadastraUsuario  onPress={cadastrar}>
+          <CadastraUsuarioTexto>Cadastrar</CadastraUsuarioTexto>  
+        </CadastraUsuario>
+      </Container>
     </KeyboardAvoidingView>
-    </ScrollView>
+  </Scroller>
   )
 }
-
-const styles = StyleSheet.create({
-  background:{
-    flex:1,
-    alignItems:'center',
-    justifyContent:'center',
-    backgroundColor:'#000'
-  },
-  containerLogo:{
-    justifyContent:'center', 
-    bottom: 30 
-  },
-  container:{
-    flex:1,
-    alignItems:'center',
-    justifyContent:'center',
-    width:'90%',
-    paddingBottom: 260,
-    top:140
-  },
-  input:{
-    backgroundColor:'#FFF',
-    width:'90%',
-    marginBottom:15,
-    color:'#222',
-    fontSize:17,
-    borderRadius:7,
-    padding:10
-  },
-  btnSubmit:{
-    backgroundColor: '#CC0000',
-    width:'90%',
-    height:45,
-    alignItems:'center',
-    justifyContent:'center',
-    borderRadius:7
-  },
-  SubmitText:{
-    color:'#FFF',
-    fontSize:18
-  }
-});

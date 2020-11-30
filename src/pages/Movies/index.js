@@ -7,6 +7,7 @@ import Rating from '../../components/Rating';
 import FavoriteIcon from '../../images/favorite.svg';
 import FavoriteFullIcon from '../../images/favorite_full.svg';
 import ApiMovies from '../../ApiMovies';
+import { IMAGE_DOMAIN_URL } from '@env';
 
 import { 
     Container, 
@@ -52,9 +53,6 @@ import firebase from '../../FirebaseConnection';
 export default () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const IMAGE_DOMAIN_URL = 'https://image.tmdb.org/t/p/w500/';
-
-    
 
     const [userInfo, setUserInfo] = useState({
         id: route.params.id,
@@ -69,8 +67,10 @@ export default () => {
     const [userGenres, setuserInfoGenres] = useState(null);
     const [userCredits, setCreditsInfo] = useState(null);
     const [favorited, setFavorited] = useState(false);
-
+    const [thisFavorited, setthisFavorited] = useState([]);
+    
    useEffect(()=>{
+      getFavorited();
       getMovieInfo();    
       getGenres();
       getCredits();
@@ -83,13 +83,11 @@ export default () => {
      }  
    })
 
-
    var year = moment(userInfoAdd.release_date, true).format('YYYY');
-
 
    const getMovieInfo = async () => {
     let json = await ApiMovies.getMovie(userInfo.id);
-    setuserInfoAddInfo(json);  
+        setuserInfoAddInfo(json);  
     }
   
     async function getCredits() {
@@ -106,23 +104,42 @@ export default () => {
 
     const MovieFavorite  = () => {
         setFavorited(!favorited);
-        firebase.auth().onAuthStateChanged((user)=>{
-            if(user){
-                let favoritos =firebase.database().ref('favoritos').child(user.uid);
-                let key = favoritos.push().key;
-                favoritos.child(key).set({
-                    id: userInfo.id,
-                    title: userInfo.name,
-                    poster_path: userInfo.avatar,
-                    vote_average: userInfo.note,
-                    status: true
-                });
-            }
-        });
-        alert('Passou!');
-      
+        if (favorited == false) {
+            firebase.auth().onAuthStateChanged((user)=>{
+                if(user){
+                    let favoritos =firebase.database().ref('favoritos').child(user.uid);
+                    favoritos.child(userInfo.id).set({
+                        id: userInfo.id,
+                        title: userInfo.name,
+                        poster_path: userInfo.avatar,
+                        vote_average: userInfo.note
+                    });
+                }
+            }); 
+        } else {
+            PopularMovies.addAuthListener((user)=>{
+                if(user) {
+                    let token = firebase.auth().currentUser.uid;
+                    firebase.database().ref('favoritos').child(token).child(userInfo.id).remove();
+                    setFavorited(false);
+                }    
+            })
+        }    
     }
-    
+    const getFavorited = () =>{
+        PopularMovies.addAuthListener((user)=>{
+            if(user) {
+              let token = firebase.auth().currentUser.uid;
+              firebase.database().ref('favoritos').child(token).child(userInfo.id)
+              .once('value').then((snapshot)=>{
+                let MovieId = snapshot.val().id;
+                if (MovieId =! null) {
+                     setFavorited(true);
+                }           
+              })
+            }
+        })
+    }
     return(
         <Container>
            <Scroller>

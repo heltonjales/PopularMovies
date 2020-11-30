@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext, Component } from 'react';
-
 import { UserContext } from '../../contexts/UsersContext';
-
 import { useNavigation } from '@react-navigation/native';
 import { 
   Container,

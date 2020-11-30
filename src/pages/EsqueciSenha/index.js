@@ -1,114 +1,53 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { 
-  View, 
-  KeyboardAvoidingView, 
-  TextInput, 
-  Image, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet,
-  ScrollView 
-} from 'react-native';
+  Scroller,
+  KeyboardAvoidingView,
+  Container,
+  Image,
+  TextTitle,
+  RecoveryButton,
+  TextButton
+} from './styles';
 
+import InputArea from '../../components/LoginInput';
+import EmailIcon from '../../images/email.svg';
 import firebase from '../../FirebaseConnection';
 
-export default class EsqueciSenha extends Component {
-  constructor(Props){
-    super(Props);
-    this.state = {
-      email:''
-    }
+export default () => {  
+const navigation = useNavigation();
+const [email, setEmailText] = useState('');
 
-    this.recuperarSenha = this.recuperarSenha.bind(this);
+function recuperarSenha(){
+  if (email != '') {
+    firebase.auth().sendPasswordResetEmail(email).catch((error)=>{
+      alert(error.code);
+    });
+    alert('Um Link foi enviado para o e-mail cadastrado.');
+    navigation.navigate('Login');
+  } else {
+    alert('Informe um e-mail válido')
   }
-
-recuperarSenha(){
-  firebase.auth().sendPasswordResetEmail(this.state.email).catch((error)=>{
-    alert(error.code);
-  });
-  alert('Um Link foi enviado para o e-mail cadastrado.');
-  this.props.navigation.navigate('Login');  
 }
   
-render(){
-  return (
-    <ScrollView> 
-    <KeyboardAvoidingView style={styles.background}>
-    
-      <View style={styles.container}>
-        <Image
-        style={{
-            width:50,
-            height:50,
-            bottom: 40
-        }} 
-        source={require('../assets/logo1.png')}  
-        />
-        <Text style={styles.TitleRecovery}>
-          Recuperação de Senha
-        </Text>
-        <TextInput 
-          style={styles.input}
-          placeholder="E-Mail"
-          autoCorrect={false}
-          onChangeText={(email)=>this.setState({email})}        
-        />
-    
-      <TouchableOpacity 
-        style={styles.btnSubmit}
-        onPress={this.recuperarSenha}
-      >
-        <Text style={styles.SubmitText}>Enviar</Text>  
-      </TouchableOpacity>
-      </View>
-
-    </KeyboardAvoidingView>
-    </ScrollView>
+return (
+    <Scroller> 
+      <KeyboardAvoidingView>
+        <Container>
+          <Image source={require('../assets/logo1.png')} />
+          <TextTitle>Recuperação de Senha</TextTitle>
+          <InputArea 
+            IconSvg={EmailIcon}
+            placeholder="E-mail"
+            autoCorrect={false}
+            value={email}
+            onChangeText={(e)=>setEmailText(e)}           
+          />
+          <RecoveryButton onPress={recuperarSenha}>
+            <TextButton>Enviar</TextButton>  
+          </RecoveryButton>
+        </Container>
+      </KeyboardAvoidingView>
+    </Scroller>
   );
 }
-}
-
-const styles = StyleSheet.create({
-  background:{
-    flex:1,
-    alignItems:'center',
-    justifyContent:'center',
-    backgroundColor:'#000'
-  },
-  container:{
-    flex:1,
-    alignItems:'center',
-    justifyContent:'center',
-    width:'90%',
-    paddingBottom: 520,
-    top: 170
-  },
-  input:{
-    backgroundColor:'#FFF',
-    width:'90%',
-    marginBottom:15,
-    color:'#222',
-    fontSize:17,
-    borderRadius:7,
-    padding:10
-  },
-  btnSubmit:{
-    backgroundColor: '#CC0000',
-    width:'90%',
-    height:45,
-    alignItems:'center',
-    justifyContent:'center',
-    borderRadius:7
-  },
-  SubmitText:{
-    color:'#FFF',
-    fontSize:18
-  },
-  TitleRecovery:{
-    color:'#FFF',
-    fontSize:24,
-    fontWeight: "bold",
-    padding: 30
-  }
-});

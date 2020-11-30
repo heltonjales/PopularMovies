@@ -39,3 +39,13 @@ export const ListArea = styled.View`
     margin-bottom: 30px;
 `;
 
+export const EmptyWarning = styled.Text`
+    text-align: center;
+    margin-top: 30px;
+    color: #FFF;
+    font-size: 14px;
+`;
+
+export const LoadingIcon = styled.ActivityIndicator`
+    margin-top: 30px;
+`;

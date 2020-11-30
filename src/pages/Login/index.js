@@ -98,11 +98,14 @@ export default function Login({navigation}) {
           firebase.database().ref('usuarios').child(token).once('value')
           .then((snapshot)=>{
             let nome = snapshot.val().nome;
-            console.log('Nome', nome);
+            let telefone = snapshot.val().telefone;
+            let email = snapshot.val().email;
             userDispatch({
               type: 'setName',
               payload:{
-                name: nome
+                name: nome,
+                phone: telefone,
+                mail: email
               }
             });
             alert('Bem Vinda(a) ' + nome);

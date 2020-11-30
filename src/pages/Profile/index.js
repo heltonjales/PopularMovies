@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, Button, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImagePicker from 'react-native-image-picker';
@@ -9,18 +9,36 @@ import {
   LogoutButton,
   MessagenButtonText
 } from './styles';
-
+import { UserContext } from '../../contexts/UsersContext';
 import EmailIcon from '../../images/email.svg'
 import UserIcon from '../../images/person.svg'
 import SmartphoneIcon from '../../images/smartphone.svg'
 import InputArea from '../../components/LoginInput';
 import firebase from '../../FirebaseConnection';
+import RNFetchBlob from 'react-native-fetch-blob';
+import PopularMovies from '../../Api';
+
+window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest;
+window.Blob = RNFetchBlob.polyfill.Blob;
+const Fetch = RNFetchBlob.polyfill.Fetch
+window.fetch = new Fetch({
+    auto : true,
+    binaryContentTypes : [
+        'image/',
+        'video/',
+        'audio/',
+        'foo/',
+    ]
+}).build()
 
 export default () => {
-
+  const { state:user } = useContext(UserContext); 
   const navigation = useNavigation();
 
   const [foto, setFoto] = useState({});
+  const [nome, setNome] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [email, setEmail] = useState('');
 
   const Logout = async () => {
     await firebase.auth().signOut();
@@ -29,9 +47,16 @@ export default () => {
       routes:[{name:'Login'}]
     });
   }
-
   
-  const selectImage = () => {
+  useEffect(()=>{
+    setNome(user.name);
+    setTelefone(user.phone);
+    setEmail(user.mail);
+    getAvatar();
+  },[]);
+  
+
+const selectImage = () => {
     const options = {
       maxWidth: 2000,
       maxHeight: 2000,
@@ -42,14 +67,48 @@ export default () => {
     };  
       ImagePicker.launchImageLibrary(options, response => {
         if(response.uri) {
-          let foto = {uri:response.uri};
-          setFoto(foto);
           
-        }
+          firebase.auth().onAuthStateChanged((user)=>{
+            if(user){
+              let uri = response.uri.replace('file://', '');
+              let imagem = firebase.storage().ref().child('avatar').child(user.uid);
+              let mime = 'image/jpeg';
+
+              RNFetchBlob.fs.readFile(uri, 'base64')
+              .then((data)=>{
+                return RNFetchBlob.polyfill.Blob.build(data, {type:mime+';BASE64'});
+              })
+              .then((blob)=>{
+                imagem.put(blob, {contentType:mime})
+                .then(()=>{
+                  blob.close();
+                  imagem.getDownloadURL().then((url)=>{
+                    setFoto({uri:url});
+                  });
+                  alert("Processo concluído!");
+                })
+                .catch((error)=>{
+                  alert(error.code);
+                })
+              });
+              setFoto(foto);    
+            }  
+          })
+      }
   });
 };
-console.log(foto);
-  return (
+
+const getAvatar = () => {
+  PopularMovies.addAuthListener((user)=>{
+    if (user) {
+      let token = firebase.auth().currentUser.uid;
+      firebase.storage().ref().child('avatar').child(token).getDownloadURL().then((url)=>{
+        setFoto({uri:url});
+      });
+    } 
+  })
+}
+return (
     <Container>
       <Text>Profile</Text>
       
@@ -59,29 +118,27 @@ console.log(foto);
 
       <InputArea 
           IconSvg={UserIcon}
-          placeholder="Digite o seu nome"
+          placeholder="Nome"
           autoCorrect={false}
-          //value={emailText}
-          onChangeText={e=>setEmail(e)}        
+          value={nome}
+          onChangeText={e=>setNome(e)}        
       />
 
       <InputArea 
           IconSvg={SmartphoneIcon}
-          placeholder="Digite o seu telefone"
+          placeholder="Telefone"
           autoCorrect={false}
-          //value={emailText}
-          onChangeText={e=>setEmail(e)}        
+          value={telefone}
+          onChangeText={e=>setTelefone(e)}        
       />
 
       <InputArea 
           IconSvg={EmailIcon}
-          placeholder="Digite o seu email"
+          placeholder="E-Mail"
           autoCorrect={false}
-          //value={emailText}
+          value={email}
           onChangeText={e=>setEmail(e)}        
       />
-
-    
       <LogoutButton onPress={Logout}>
         <MessagenButtonText>SAIR</MessagenButtonText>
       </LogoutButton>

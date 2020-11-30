@@ -21,7 +21,6 @@ class PopularMovies {
     salveInfo(table, id){
       return    firebase.database().ref(table).child(id).set({});
     }
-
 }
 
 export default new PopularMovies();

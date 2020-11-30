@@ -4,7 +4,7 @@ import styled from 'styled-components/native';
 import HomeIcon from '../images/casa.svg';
 import FavoriteIcon from '../images/coracao.svg';
 import SearchIcon from '../images/procurar.svg';
-import AccountIcon from '../images/do-utilizador.svg';
+import AccountIcon from '../images/account.svg';
 
 const TabArea = styled.View`
     height: 60px;
@@ -37,7 +37,7 @@ export default ({state, navigation}) => {
                 <FavoriteIcon style={{opacity: state.index===2? 1 : 0.5}} width="24" height="24" fill="#FFFFFF" /> 
             </TabItem>
             <TabItem onPress={()=>goTo('Profile')}>
-                <AccountIcon style={{opacity: state.index===3? 1 : 0.5}} width="24" height="24" fill="#FFFFFF" />         
+                <AccountIcon style={{opacity: state.index===3? 1 : 0.5}} width="30" height="30" fill="#FFFFFF" />         
             </TabItem>
         </TabArea>
     );

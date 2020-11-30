@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
 import Rating from './Rating.js';
+import { IMAGE_DOMAIN_URL } from '@env';
 
 const Area = styled.TouchableOpacity`
     background-color: #FFFFFF;
@@ -49,8 +50,6 @@ const FavoriteButton = styled.TouchableOpacity`
     align-items: center;
 `;
 
-const IMAGE_DOMAIN_URL = 'https://image.tmdb.org/t/p/w500/';
-
 export default ({data}) => {
     const navigation = useNavigation();
     const handleClick = () => {  
@@ -65,7 +64,7 @@ export default ({data}) => {
 
     return(
         <Area onPress={handleClick}>
-            <Avatar source={{uri: IMAGE_DOMAIN_URL + data.poster_path }} />
+            <Avatar source={{uri: `${IMAGE_DOMAIN_URL}` + data.poster_path }} />
             <InfoArea>
                 <MovieTitle numberOfLines={2}>{data.title}</MovieTitle>
                 <Rating 

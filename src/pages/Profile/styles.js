@@ -14,7 +14,7 @@ export const ImageArea = styled.TouchableOpacity`
     height:150px;
     border-radius: 75px;
     margin-top: 30px;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
     background-color: #FF0000;   
 `;
 
